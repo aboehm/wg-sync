@@ -1,28 +1,39 @@
-on:
-  push:
-    branches:
-      - '*'
-  
 name: Tests
+
+on: [push]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+
+      - run: cargo install clippy-sarif sarif-fmt
+
+      - run: cargo clippy --all-targets --all-features --message-format=json | clippy-sarif | tee results.sarif | sarif-fmt
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results.sarif
+
   tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run tests
-        run: cargo test
-
       - uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
-            components: clippy
-      - name: Run clippy
-        uses: actions-rs/clippy@master
-        with:
-          args: --all-features --all-targets
+          toolchain: stable
 
+      - run: cargo test --all-features
+
+      - run: cargo test --all-features --doc
