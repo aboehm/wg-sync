@@ -2,10 +2,6 @@ on:
   push:
     branches:
       - '*'
-    paths:
-      - 'src/*.rs'
-      - 'Cargo.lock'
-      - 'Cargo.toml'
   
 name: Tests
 
